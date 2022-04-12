@@ -1,166 +1,216 @@
-/** Version 0.0.1
- *  CalendarLib.js
- *      - JS 기본 세팅
- * */
+/** @Version 0.2
+ *  CalendarLib.js */
 class CalendarLib {
-    sym = null;
     target = null;
     config = null;
+    date = new Date();
+    year = null;
+    month = null;
+    day = null;
+
+    config = {
+        width: '350px',
+        height: '300px',
+        clickEvent: true,
+        format: 'YYYY-mm-dd',
+    }
 
     /** @Constructor
-     *  @Public
      *  @Param : Dom(Element - input), config(Style Object)
      *  Load CSS and Create HTML Element */
-    constructor(target, config) {
+    constructor(target) {
         if (!Boolean(target)) throw new Error('wrong parameter');
         if (target.tagName !== 'INPUT') throw new Error('wrong parameter');
 
-        this.checkConfig(config);
-        const date = new Date();
         this.target = target;
 
-        /* 은닉을 위해 새로운 객체에 Symbol 제외 */
-        this.config = {
-            width: config.width,
-            height: config.height,
-            clickEvent: config.clickEvent,
-            format: config.format
-        }
-
-        config.sym = Symbol('key');
-        this.sym = config.sym;
-
-        this.create(date, config.sym);
-    }
-
-    /** @Private
-     *  @Param : Object
-     *  Config Check */
-    checkConfig(config) {
-        if (!Boolean(config)) throw new Error('wrong parameter (because: config)');
-        if (!Boolean(config.width)) throw new Error('wrong parameter (because: width)');
-        if (!Boolean(config.height)) throw new Error('wrong parameter (because: height)');
-        if (!Boolean(config.clickEvent)) throw new Error('wrong parameter (because: clickEvent)');
-        if (!Boolean(config.format)) throw new Error('wrong parameter (because: format)');
-
-        if (typeof config.clickEvent !== 'boolean') throw new Error('wrong parameter (because: clickEvent)');
-        if (typeof config.width !== 'string') throw new Error('wrong parameter (because: width)');
-        if (typeof config.height !== 'string') throw new Error('wrong parameter (because: height)');
-        if (typeof config.format !== 'string') throw new Error('wrong parameter (because: format)');
+        this.create();
     }
 
     /** @Param : Object
-     *  @Private
      *  Calendar Style(Load Css)*/
-    style(styleObject, config) {
-        if (this.config.sym !== this.sym) throw new Error('Use Constructor');
+    style(styleObject) {
         if (!Boolean(styleObject)) throw new Error('wrong parameter');
         if (!(typeof styleObject === 'object')) throw new Error('wrong parameter');
+
+        /* TODO CSS 변경할 수 있도록 */
     }
 
     /** @Param : Date
-     *  @Private
      *  Create Calendar Box */
-    create(date, sym) {
-        if (sym !== this.sym) throw new Error('Use Constructor');
+    create() {
         /* create div */
         const box = document.createElement('div');
 
-        box.id = 'CalendarBox';
-        box.style.border = '1px solid black';
-        box.style.position = 'relative';
-        box.style.display = 'inline-block'; // TODO none으로 변경
+        box.id = 'calendarBox';
+        box.style.position = 'absolute';
+        box.classList.add('none');
         box.style.width = this.config.width;
         box.style.height = this.config.height;
         box.style.zIndex = 1;
+        box.style.boxShadow = '0px 3px 10px 0 rgb(0 0 0 / 7%)';
+        box.style.backgroundColor = '#FFFFFF';
+
+        box.innerHTML = `<div class='header'>
+                             <a class="prev arrow" data-arrow="PREV"></a>
+                             <div>
+                                 <span class="month">${CalendarLib.getMonth(this.date.getMonth() + 1)},</span>&nbsp;<span class="year">${this.date.getFullYear()}</span>
+                             </div>             
+                             <a class="next arrow" data-arrow="NEXT"></a>
+                         </div>
+                         <table class="list">
+                         
+                            <colgroup>
+                                <col width="14%"></col>
+                                <col width="14%"></col>
+                                <col width="14%"></col>
+                                <col width="14%"></col>
+                                <col width="14%"></col>
+                                <col width="14%"></col>
+                                <col width="14%"></col>
+                            </colgroup>
+                             <thead>
+                             <tr>
+                                 <th class="weekend holiday">Sun</th>
+                                 <th class="weekend">Mon</th>
+                                 <th class="weekend">Tue</th>
+                                 <th class="weekend">Wed</th>
+                                 <th class="weekend">Thu</th>
+                                 <th class="weekend">Fri</th>
+                                 <th class="weekend">Sat</th>
+                             </tr>
+                             </thead>
+                             <tbody id="calendar-table"></tbody>
+                         </table>`;
 
         this.target.after(box);
+
+        this.year = this.date.getFullYear();
+        this.month = this.date.getMonth() + 1;
+
+        this.make();
     }
 
-    /** @Param Object, Event
-     *  @Private
-     *  @Return : Specific Date
-     *  Click  Day*/
-    selectDate(config, event) {
-        return this.getDate();
+    /** Make Calendar */
+    make() {
+        const firstDay = new Date(this.date.getFullYear(), this.date.getMonth(), 1); // 현재달의 첫째날
+        const lastDay = new Date(this.date.getFullYear(), this.date.getMonth() + 1, 0); // 현재달의 마지막날
+        const calendar = document.getElementById('calendar-table'); // 리스트를 뿌릴 테이블
+
+
+        let tableStr = '<tr>';
+
+        /* 1일 시작 위치 */
+        for (let i = 0; i < firstDay.getDay(); i++) {
+            tableStr += '<td></td>';
+        }
+
+        /* 테이블 리스트 출력 */
+        for (let i = 1; i <= lastDay.getDate(); i++) {
+            const day = (i < 10) ? `0${i}` : i;
+            const currentTime = new Date(this.date.getFullYear(), this.date.getMonth(), i).getDay();
+            tableStr += `<td class="cell" value="${day}"><span>${day}</span></td>`;
+
+            /* 개행 */
+            if (currentTime === 6) tableStr += '</tr>';
+        }
+
+        calendar.innerHTML = tableStr;
+
+        this.eventBind();
     }
 
     /** @Param : event, Function
-     *  @Public
      *  @Event
      *  Open Calendar*/
     open(event, callback) {
         if (this.target === null) throw new Error('wrong parameter_TargetException');
-        console.log(this.target);
+        const target = document.getElementById('calendarBox');
+        target.classList.toggle('none');
 
         /* Return Date */
-        if (typeof callback === 'function') callback(this.getDate());
+        if (typeof callback === 'function') callback(this.getDate(this.config.format));
     }
 
-    /** @Event
-     *  @Public
-     *  @Param : Function
-     *  Close Calendar */
-    close(callback) {
-        if (this.target === null) throw new Error('wrong parameter_TargetException');
-
-        /* Remove Calendar Element */
-
-        /* callback  */
-        if (typeof callback === 'function') {}callback(this.getDate());
-
-        /* Remove Property */
-
-    }
-
-    /** @Public
-     *  @Event
-     *  @Param : Object
-     *  Clear Value */
-    clear(config) {
-    }
-
-    /** @Public
+    /** @Return String
      *  Get Date(Value) */
     getDate(format) {
         if (!Boolean(format)) throw new Error('wrong parameter')
+
+        return CalendarLib.dateFormat(this.date, format);
     }
 
-    /** @Public
+    /** @Param : Date
      *  Set Date */
     setDate(date) {
-
+        if (!Boolean(date)) throw new Error('No Parameter');
+        if (!(typeof date === 'object')) throw new Error('wrong parameter');
+        console.log(date);
+        this.date = date;
     }
 
     /** @Param :String(YEAR OR MONTH OR DAY)
      *  @Event
-     *  @Private
      *  Move Calendar */
-    move(time) {
-        if (this.config.sym !== this.sym) throw new Error('Use Constructor');
+    move(arrow) {
+        if (!Boolean(arrow)) throw new Error('No Parameter');
 
-        // if (typeof this.date !== 'symbol') throw new Error('잘못된 접근입니다.');
-        if (!Boolean(time)) throw new Error('No Parameter');
-
-        time = time.toUpperCase();
-
-        switch (time) {
-            case 'YEAR':
-                alert('개발 보류');
+        switch (arrow.toUpperCase()) {
+            case 'PREV':
+                this.date.setMonth(this.date.getMonth() - 1);
                 break;
-            case 'MONTH':
-
-                break;
-            case 'DAY':
+            case 'NEXT':
+                thi
                 break;
         }
     }
+
+    /** Define Event
+     * @Event */
+    eventBind() {
+        const arrow = document.getElementsByClassName('arrow');
+        const cells = document.getElementsByClassName('cell');
+
+        if (this.config.clickEvent) {
+            this.target.addEventListener('click', () => {
+                this.open();
+            });
+        }
+        /* TODO 화살표 이벤트 */
+
+        for (let item of arrow) {
+            item.addEventListener('click', (event) => {
+                const dataArrow = event.currentTarget.getAttribute('data-arrow');
+
+                if ('NEXT' === dataArrow) {
+
+                }
+                else {
+
+                }
+            });
+        }
+
+        /*TODO Cell 클릭시 input tag에 값 넣기  */
+        for (let cell of cells) {
+            cell.addEventListener('click', (event) => {
+                const tdCell = event.currentTarget.getAttribute('value');
+                const date = new Date(this.year, this.month, tdCell);
+                this.day = tdCell;
+                this.setDate(date);
+            });
+        }
+    }
+
+    /*********************
+     *      Static
+     ********************/
 
     /** @Param : Date, String(TIME FORMAT)
      *  @Static
      *  @Return : Date
      *  Specific Date Format */
-    static dateFormat(config, date, format) {
+    static dateFormat(date, format) {
         /* Falsy Value Check */
         if (!Boolean(date)) throw new Error('No Parameter');
 
@@ -177,17 +227,59 @@ class CalendarLib {
             case 'YYYY-MM-DD':
                 date = `${year}-${month}-${day}`;
                 break;
-            case 'YYYY-MM-DD HH:MM:SS':
-                date = `${year}-${month}-${day}`;
-                break;
             case 'YYYY MM DD':
                 date = `${year} ${month} ${day}`;
                 break;
             case 'YYYY.MM.DD':
                 date = `${year}.${month}.${day}`;
                 break;
+            case 'YYYY/MM/DD':
+                date = `${year}/${month}/${day}`;
+                break;
+            case 'DD-MM-YYYY':
+                date = `${day}-${month}-${year}`;
+                break;
+            case 'DD.MM.YYYY':
+                date = `${day}.${month}.${year}`;
+                break;
+            case 'DD MM YYYY':
+                date = `${year} ${month} ${day}`;
+                break;
+            case 'DD/MM/YYYY':
+                date = `${year}/${month}/${day}`;
+                break;
+            case 'MM-DD':
+                date = `${month}-${day}`;
+                break;
+            case 'MM/DD':
+                date = `${month}/${day}`;
+                break;
+            case 'MM.DD':
+                date = `${month}.${day}`;
+                break;
+            case 'MM DD':
+                date = `${month} ${day}`;
+                break;
         }
         return date;
+    }
+
+    /** 요일 반환 Method
+     *  @Return : string
+     *  @Param : Number */
+    static getDay(day) {
+        const WEEKEND = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+        return WEEKEND[day];
+    }
+
+    /** 월 반환
+     *  @Param : Number
+     *  @Return : string */
+    static getMonth(month) {
+        const MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        return MONTH[month - 1];
     }
 
     /** @Parma : HTML Element
@@ -206,25 +298,5 @@ class CalendarLib {
         document.getElementsByTagName('head')[0].appendChild(styleSheet);
         target.setAttribute('readonly', true);
         target.classList.add('datepicker');
-    }
-
-
-    /** TODO 후에 jQuery 제거
-     * jQuery datepicker */
-    ui() {
-        $('[data-type="datepicker"]').datepicker({
-            monthNames: ["01","02","03","04","05","06","07","08","09","10","11","12"],
-            monthNamesShort: ["01","02","03","04","05","06","07","08","09","10","11","12"],
-            dayNamesMin: [ "일", "월", "화", "수", "목", "금", "토"],
-            showMonthAfterYear:true,
-            showOtherMonths: true,
-            // changeMonth: true,
-            // changeYear: true,
-            dateFormat: "yy-mm-dd",
-            yearSuffix: ".",
-            beforeShow: function(input, inst) {
-                $('#ui-datepicker-div').addClass('datepicker-wrapper');
-            }
-        });
     }
 }
