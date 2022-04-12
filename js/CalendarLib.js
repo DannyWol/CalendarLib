@@ -4,13 +4,10 @@ class CalendarLib {
     target = null;
     config = null;
     date = new Date();
-    year = null;
-    month = null;
-    day = null;
 
     config = {
-        width: '350px',
-        height: '300px',
+        width: '300px',
+        height: '330px',
         clickEvent: true,
         format: 'YYYY-mm-dd',
     }
@@ -24,6 +21,7 @@ class CalendarLib {
 
         this.target = target;
 
+        this.target.style.textAlign = 'center';
         this.create();
     }
 
@@ -85,9 +83,6 @@ class CalendarLib {
 
         this.target.after(box);
 
-        this.year = this.date.getFullYear();
-        this.month = this.date.getMonth() + 1;
-
         this.make();
     }
 
@@ -96,7 +91,6 @@ class CalendarLib {
         const firstDay = new Date(this.date.getFullYear(), this.date.getMonth(), 1); // 현재달의 첫째날
         const lastDay = new Date(this.date.getFullYear(), this.date.getMonth() + 1, 0); // 현재달의 마지막날
         const calendar = document.getElementById('calendar-table'); // 리스트를 뿌릴 테이블
-
 
         let tableStr = '<tr>';
 
@@ -117,6 +111,8 @@ class CalendarLib {
 
         calendar.innerHTML = tableStr;
 
+        /* 오늘 날짜를 입력 */
+        this.setInputValue();
         this.eventBind();
     }
 
@@ -136,7 +132,6 @@ class CalendarLib {
      *  Get Date(Value) */
     getDate(format) {
         if (!Boolean(format)) throw new Error('wrong parameter')
-
         return CalendarLib.dateFormat(this.date, format);
     }
 
@@ -145,61 +140,83 @@ class CalendarLib {
     setDate(date) {
         if (!Boolean(date)) throw new Error('No Parameter');
         if (!(typeof date === 'object')) throw new Error('wrong parameter');
-        console.log(date);
         this.date = date;
+
+        this.setInputValue();
     }
 
-    /** @Param :String(YEAR OR MONTH OR DAY)
-     *  @Event
-     *  Move Calendar */
-    move(arrow) {
-        if (!Boolean(arrow)) throw new Error('No Parameter');
-
-        switch (arrow.toUpperCase()) {
-            case 'PREV':
-                this.date.setMonth(this.date.getMonth() - 1);
-                break;
-            case 'NEXT':
-                thi
-                break;
-        }
+    /** value in Input Tag*/
+    setInputValue() {
+        this.target.value = this.getDate(this.config.format);
     }
 
     /** Define Event
      * @Event */
-    eventBind() {
+    eventBind(month, date) {
         const arrow = document.getElementsByClassName('arrow');
         const cells = document.getElementsByClassName('cell');
 
+        /** @Event Calendar Open Input Click */
         if (this.config.clickEvent) {
             this.target.addEventListener('click', () => {
                 this.open();
             });
         }
-        /* TODO 화살표 이벤트 */
 
+        /** @Event Arrow Click */
         for (let item of arrow) {
             item.addEventListener('click', (event) => {
                 const dataArrow = event.currentTarget.getAttribute('data-arrow');
 
                 if ('NEXT' === dataArrow) {
-
+                    this.date.setMonth(this.date.getMonth() + 1);
+                } else {
+                    this.date.setMonth(this.date.getMonth() - 1);
                 }
-                else {
-
-                }
+                this.remove();
+                this.create();
+                document.getElementById('calendarBox').classList.remove('none');
             });
         }
 
-        /*TODO Cell 클릭시 input tag에 값 넣기  */
+        /** @Event Cell Click*/
         for (let cell of cells) {
             cell.addEventListener('click', (event) => {
                 const tdCell = event.currentTarget.getAttribute('value');
-                const date = new Date(this.year, this.month, tdCell);
-                this.day = tdCell;
+
+                for (let cell of cells) {
+                    cell.classList.remove('check');
+                }
+
+                cell.classList.toggle('check');
+
+                const date = new Date(this.date.getFullYear(), this.date.getMonth(), tdCell);
                 this.setDate(date);
             });
         }
+
+        /** @Event Outer Layer Click*/
+        document.addEventListener('mouseup', (event) => {
+            const calenderBox = document.getElementById('calendarBox');
+            const containCondition = calenderBox.contains(event.target);
+
+            console.log(containCondition);
+
+            if (!containCondition) this.hide();
+        });
+    }
+
+    /** 다시 만들기 위해서 Dom Element Remove */
+    remove() {
+        const calenderBox = document.getElementById('calendarBox');
+
+        if (calenderBox !== null) calenderBox.remove();
+    }
+
+    /** Hide */
+    hide() {
+        const calenderBox = document.getElementById('calendarBox');
+        if (calenderBox !== null) calenderBox.classList.add('none');
     }
 
     /*********************

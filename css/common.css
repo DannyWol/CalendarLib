@@ -22,7 +22,7 @@
 .list tbody tr td {
     padding: 10px;
     font-size: 14px;
-    border-radius: 10px;
+    border-radius: 500px;
 }
 .holiday {
     color: #dc4762;
@@ -32,19 +32,22 @@
 }
 .check {
     background-color: #30b69e;
+    color: white;
 }
 #calendarBox {
     border-radius: 5px;
 }
 .prev {
+    cursor: pointer;
     width: 18px;
     margin-left: 40px;
-    background-image: url(/resources/ui-icons_444444_256x240.png);
+    background-image: url(../resources/ui-icons_444444_256x240.png);
     background-position: -100px -12px;
 }
 .next {
+    cursor: pointer;
     width: 18px;
     margin-right :40px;
-    background-image: url(/resources/ui-icons_444444_256x240.png);
+    background-image: url(../resources/ui-icons_444444_256x240.png);
     background-position: -30px -12px;
 }
