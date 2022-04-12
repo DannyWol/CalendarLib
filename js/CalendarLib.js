@@ -282,7 +282,7 @@ class CalendarLib {
         return MONTH[month - 1];
     }
 
-    /** @Parma : HTML Element
+    /** @Param : HTML Element
      *  @Static
      *  Set Style to Input Tag */
     static inputStyle(target) {
