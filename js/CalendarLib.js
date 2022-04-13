@@ -1,15 +1,19 @@
-/** @Version 0.2
- *  CalendarLib.js */
+/** @Version 0.3
+ *  CalendarLib.js
+ *  TODO 1. 오늘을 기점으로 이전일을 누를 수 없게 하는 기능
+ *       2. 시작일과 종료일을 지정할 수 있는 기능
+ *       3. 클릭시 날짜 클릭시 닫혀지면서 값이 들어갈 수 있도록 */
 class CalendarLib {
     target = null;
     config = null;
     date = new Date();
+    currentDate = null;
 
     config = {
-        width: '300px',
-        height: '330px',
-        clickEvent: true,
-        format: 'YYYY-mm-dd',
+
+        clickEvent: true, /* Calendar 클릭시 닫힐 것인지*/
+        double: false,  /* 날짜를 시작일과 종료일로 선택여부*/
+        format: 'YYYY-mm-dd', /* 데이터를 반환할 때의 날짜 형식 */
     }
 
     /** @Constructor
@@ -43,8 +47,8 @@ class CalendarLib {
         box.id = 'calendarBox';
         box.style.position = 'absolute';
         box.classList.add('none');
-        box.style.width = this.config.width;
-        box.style.height = this.config.height;
+        box.style.width = '300px';
+        box.style.height = '330px';
         box.style.zIndex = 1;
         box.style.boxShadow = '0px 3px 10px 0 rgb(0 0 0 / 7%)';
         box.style.backgroundColor = '#FFFFFF';
@@ -111,8 +115,6 @@ class CalendarLib {
 
         calendar.innerHTML = tableStr;
 
-        /* 오늘 날짜를 입력 */
-        this.setInputValue();
         this.eventBind();
     }
 
@@ -132,7 +134,7 @@ class CalendarLib {
      *  Get Date(Value) */
     getDate(format) {
         if (!Boolean(format)) throw new Error('wrong parameter')
-        return CalendarLib.dateFormat(this.date, format);
+        return CalendarLib.dateFormat(this.currentDate, format);
     }
 
     /** @Param : Date
@@ -140,7 +142,7 @@ class CalendarLib {
     setDate(date) {
         if (!Boolean(date)) throw new Error('No Parameter');
         if (!(typeof date === 'object')) throw new Error('wrong parameter');
-        this.date = date;
+        this.currentDate = date;
 
         this.setInputValue();
     }
@@ -168,13 +170,27 @@ class CalendarLib {
             item.addEventListener('click', (event) => {
                 const dataArrow = event.currentTarget.getAttribute('data-arrow');
 
-                if ('NEXT' === dataArrow) {
-                    this.date.setMonth(this.date.getMonth() + 1);
-                } else {
-                    this.date.setMonth(this.date.getMonth() - 1);
-                }
+                if ('NEXT' === dataArrow) this.date.setMonth(this.date.getMonth() + 1);
+                else this.date.setMonth(this.date.getMonth() - 1);
+                /* TODO INPUT value에 있는 cell에 check 클래스 적용 */
+
                 this.remove();
                 this.create();
+
+                if (this.currentDate !== null) {
+                    const year = this.currentDate.getFullYear();
+                    const month = this.currentDate.getMonth() + 1;
+                    const day = this.currentDate.getDate();
+
+                    for (let cell of cells) {
+                        if (Number(cell.getAttribute('value')) === day) {
+                            console.log(cell);
+                            cell.classList.add('check');
+                            break;
+                        }
+                    }
+                }
+
                 document.getElementById('calendarBox').classList.remove('none');
             });
         }
@@ -190,8 +206,9 @@ class CalendarLib {
 
                 cell.classList.toggle('check');
 
-                const date = new Date(this.date.getFullYear(), this.date.getMonth(), tdCell);
-                this.setDate(date);
+                this.currentDate = new Date(this.date.getFullYear(), this.date.getMonth(), tdCell);
+                this.setDate(this.currentDate);
+                this.hide();
             });
         }
 
@@ -199,8 +216,6 @@ class CalendarLib {
         document.addEventListener('mouseup', (event) => {
             const calenderBox = document.getElementById('calendarBox');
             const containCondition = calenderBox.contains(event.target);
-
-            console.log(containCondition);
 
             if (!containCondition) this.hide();
         });

@@ -1,6 +1,9 @@
-.none{
-    display: none;
+.none {
+    animation-fill-mode: forwards;
+    transition: all 0.5s;
+    opacity: 0;
 }
+
 .header {
     text-align: center;
     font-weight: bold;
@@ -9,14 +12,14 @@
     display: flex;
     justify-content: space-between;
 }
+
 .list {
     width: 100%;
     text-align: center;
     padding: 5px;
 }
+
 .list thead{
-    /*border-top: 0.3px solid gray;*/
-    /*border-bottom: 0.3px solid gray;*/
     font-size: 15px;
 }
 .list tbody tr td {
@@ -24,19 +27,24 @@
     font-size: 14px;
     border-radius: 500px;
 }
+
 .holiday {
     color: #dc4762;
 }
+
 .cell {
     cursor: pointer;
 }
+
 .check {
     background-color: #30b69e;
     color: white;
 }
+
 #calendarBox {
     border-radius: 5px;
 }
+
 .prev {
     cursor: pointer;
     width: 18px;
@@ -44,10 +52,11 @@
     background-image: url(../resources/ui-icons_444444_256x240.png);
     background-position: -100px -12px;
 }
+
 .next {
     cursor: pointer;
     width: 18px;
-    margin-right :40px;
+    margin-right: 40px;
     background-image: url(../resources/ui-icons_444444_256x240.png);
     background-position: -30px -12px;
 }
