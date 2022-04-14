@@ -1,8 +1,7 @@
 /** @Version 0.3
  *  CalendarLib.js
  *  TODO 1. 오늘을 기점으로 이전일을 누를 수 없게 하는 기능
- *       2. 시작일과 종료일을 지정할 수 있는 기능
- *       3. 클릭시 날짜 클릭시 닫혀지면서 값이 들어갈 수 있도록 */
+ *       2. 시작일과 종료일을 지정할 수 있는 기능 */
 class CalendarLib {
     target = null;
     config = null;
