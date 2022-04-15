@@ -7,16 +7,16 @@
 class CalendarLib {
 
     config = {
-        el: null,
-        style: null,
-        prev: true,
-        clickEvent: true, /* Calendar 클릭시 닫힐 것인지*/
-        duration: false,  /* 날짜를 시작일과 종료일로 선택여부*/
+        el: null, /* Input 태그 위치*/
+        style: null, /* CalendarLib 적용할 Css */ // TODO
+        prev: true, /* 이전 날짜가 클릭할 수 있는지 여부 */ // TODO
+        clickEvent: true, /* Calendar 클릭시 닫힐 것인지*/ // TODO
+        duration: false,  /* 날짜를 시작일과 종료일로 선택여부*/ // TODO
         format: 'YYYY-mm-dd', /* 데이터를 반환할 때의 날짜 형식 */
         _date: new Date(), /* 달력 이동을 위한 객체*/
         _currentDate: new Date(), /* Input 태그에 반환할 객체 */
-        error: null,
-        success: null,
+        error: null, /* ErrorHandler */ // TODO
+        success: null, /* 데이터 반환시 발생하는 Callback*/
     }
 
     /** @Constructor
