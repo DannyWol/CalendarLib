@@ -3,7 +3,7 @@
  *  TODO 1. 오늘을 기점으로 이전일을 누를 수 없게 하는 기능
  *       2. 시작일과 종료일을 지정할 수 있는 기능
  *       3. errorhandler를 사용한 error 처리
- *       4. 디자인 변경 가능하도록 개발  */
+ *       4. 디자인 변경 가능하도록 개발*/
 class CalendarLib {
 
     config = {
@@ -139,6 +139,8 @@ class CalendarLib {
     open() {
         const target = document.getElementById('calendarBox');
         target.classList.toggle('none');
+
+        if(!target.classList.contains('none')) target.classList.remove('none-click');
     }
 
     /** @Return String
@@ -242,7 +244,10 @@ class CalendarLib {
     /** Hide */
     hide() {
         const calenderBox = document.getElementById('calendarBox');
-        if (calenderBox !== null) calenderBox.classList.add('none');
+        if (calenderBox !== null) {
+            calenderBox.classList.add('none');
+            calenderBox.classList.add('none-click');
+        }
     }
 
     /*********************

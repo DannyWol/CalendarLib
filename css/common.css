@@ -61,3 +61,7 @@
 .prev {
     color: #c5c5c5
 }
+.none-click {
+    pointer-events: none;
+}
+
