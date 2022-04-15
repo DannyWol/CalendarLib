@@ -3,7 +3,6 @@
     transition: all 0.5s;
     opacity: 0;
 }
-
 .header {
     text-align: center;
     font-weight: bold;
@@ -12,39 +11,39 @@
     display: flex;
     justify-content: space-between;
 }
-
 .list {
     width: 100%;
     text-align: center;
     padding: 5px;
 }
-
 .list thead{
     font-size: 15px;
+    border: 1px solid black;
+}
+.list thead tr th {
+    border-top: 1px solid #c5c5c5;
+    border-bottom: 1px solid #c5c5c5;
+    height: 30px;
 }
 .list tbody tr td {
     padding: 10px;
     font-size: 14px;
     border-radius: 500px;
 }
-
 .holiday {
     color: #dc4762;
 }
-
 .cell {
     cursor: pointer;
 }
-
 .check {
     background-color: #30b69e;
     color: white;
 }
-
 #calendarBox {
     border-radius: 5px;
+    font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
-
 .prev {
     cursor: pointer;
     width: 18px;
@@ -52,11 +51,13 @@
     background-image: url(../resources/ui-icons_444444_256x240.png);
     background-position: -100px -12px;
 }
-
 .next {
     cursor: pointer;
     width: 18px;
     margin-right: 40px;
     background-image: url(../resources/ui-icons_444444_256x240.png);
     background-position: -30px -12px;
+}
+.prev {
+    color: #c5c5c5
 }

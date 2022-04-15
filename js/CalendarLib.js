@@ -1,30 +1,35 @@
-/** @Version 0.3
+/** @Version 0.4
  *  CalendarLib.js
  *  TODO 1. 오늘을 기점으로 이전일을 누를 수 없게 하는 기능
- *       2. 시작일과 종료일을 지정할 수 있는 기능 */
+ *       2. 시작일과 종료일을 지정할 수 있는 기능
+ *       3. errorhandler를 사용한 error 처리
+ *       4. 디자인 변경 가능하도록 개발  */
 class CalendarLib {
-    target = null;
-    config = null;
-    date = new Date();
-    currentDate = null;
 
     config = {
-
+        el: null,
+        style: null,
+        prev: true,
         clickEvent: true, /* Calendar 클릭시 닫힐 것인지*/
-        double: false,  /* 날짜를 시작일과 종료일로 선택여부*/
+        duration: false,  /* 날짜를 시작일과 종료일로 선택여부*/
         format: 'YYYY-mm-dd', /* 데이터를 반환할 때의 날짜 형식 */
+        _date: new Date(), /* 달력 이동을 위한 객체*/
+        _currentDate: new Date(), /* Input 태그에 반환할 객체 */
+        error: null,
+        success: null,
     }
 
     /** @Constructor
      *  @Param : Dom(Element - input), config(Style Object)
      *  Load CSS and Create HTML Element */
-    constructor(target) {
-        if (!Boolean(target)) throw new Error('wrong parameter');
-        if (target.tagName !== 'INPUT') throw new Error('wrong parameter');
+    constructor(config) {
+        if(typeof config !== 'object') this.handler('error', '잘못된 파라미터입니다.');
 
-        this.target = target;
+        /* 객체 병합*/
+        Object.assign(this.config, config);
+        
+        if(this.config.style !== null) this.config.el.style.textAlign = 'center';
 
-        this.target.style.textAlign = 'center';
         this.create();
     }
 
@@ -42,12 +47,14 @@ class CalendarLib {
     create() {
         /* create div */
         const box = document.createElement('div');
+        this.month = CalendarLib.getMonth(this.config._date.getMonth() + 1);
+        this.year = this.config._date.getFullYear();
 
         box.id = 'calendarBox';
         box.style.position = 'absolute';
         box.classList.add('none');
         box.style.width = '300px';
-        box.style.height = '330px';
+        box.style.height = '340px';
         box.style.zIndex = 1;
         box.style.boxShadow = '0px 3px 10px 0 rgb(0 0 0 / 7%)';
         box.style.backgroundColor = '#FFFFFF';
@@ -55,14 +62,14 @@ class CalendarLib {
         box.innerHTML = `<div class='header'>
                              <a class="prev arrow" data-arrow="PREV"></a>
                              <div>
-                                 <span class="month">${CalendarLib.getMonth(this.date.getMonth() + 1)},</span>&nbsp;<span class="year">${this.date.getFullYear()}</span>
+                                 <span class="month">${this.month},</span>&nbsp;<span class="year">${this.year}</span>
                              </div>             
                              <a class="next arrow" data-arrow="NEXT"></a>
                          </div>
                          <table class="list">
                          
                             <colgroup>
-                                <col width="14%"></col>
+                                <col style="border 1px solid black" width="14%"></col>
                                 <col width="14%"></col>
                                 <col width="14%"></col>
                                 <col width="14%"></col>
@@ -84,15 +91,15 @@ class CalendarLib {
                              <tbody id="calendar-table"></tbody>
                          </table>`;
 
-        this.target.after(box);
+        this.config.el.after(box);
 
         this.make();
     }
 
     /** Make Calendar */
     make() {
-        const firstDay = new Date(this.date.getFullYear(), this.date.getMonth(), 1); // 현재달의 첫째날
-        const lastDay = new Date(this.date.getFullYear(), this.date.getMonth() + 1, 0); // 현재달의 마지막날
+        const firstDay = new Date(this.config._date.getFullYear(), this.config._date.getMonth(), 1); // 현재달의 첫째날
+        const lastDay = new Date(this.config._date.getFullYear(), this.config._date.getMonth() + 1, 0); // 현재달의 마지막날
         const calendar = document.getElementById('calendar-table'); // 리스트를 뿌릴 테이블
 
         let tableStr = '<tr>';
@@ -105,8 +112,17 @@ class CalendarLib {
         /* 테이블 리스트 출력 */
         for (let i = 1; i <= lastDay.getDate(); i++) {
             const day = (i < 10) ? `0${i}` : i;
-            const currentTime = new Date(this.date.getFullYear(), this.date.getMonth(), i).getDay();
-            tableStr += `<td class="cell" value="${day}"><span>${day}</span></td>`;
+            const currentTime = new Date(this.config._date.getFullYear(), this.config._date.getMonth(), i).getDay();
+            let classStr = 'cell';
+
+            const currentMonth = this.config._currentDate.getMonth();
+
+            if (!this.config.prev && (i < this.config._currentDate.getDate)) {
+                classStr += ' prev'
+            }
+
+            tableStr += `<td class="${classStr}" value="${day}"><span>${day}</span></td>`;
+
 
             /* 개행 */
             if (currentTime === 6) tableStr += '</tr>';
@@ -120,20 +136,15 @@ class CalendarLib {
     /** @Param : event, Function
      *  @Event
      *  Open Calendar*/
-    open(event, callback) {
-        if (this.target === null) throw new Error('wrong parameter_TargetException');
+    open() {
         const target = document.getElementById('calendarBox');
         target.classList.toggle('none');
-
-        /* Return Date */
-        if (typeof callback === 'function') callback(this.getDate(this.config.format));
     }
 
     /** @Return String
      *  Get Date(Value) */
     getDate(format) {
-        if (!Boolean(format)) throw new Error('wrong parameter')
-        return CalendarLib.dateFormat(this.currentDate, format);
+        return CalendarLib.dateFormat(this.config._currentDate, format);
     }
 
     /** @Param : Date
@@ -141,14 +152,14 @@ class CalendarLib {
     setDate(date) {
         if (!Boolean(date)) throw new Error('No Parameter');
         if (!(typeof date === 'object')) throw new Error('wrong parameter');
-        this.currentDate = date;
+        this.config._currentDate = date;
 
         this.setInputValue();
     }
 
     /** value in Input Tag*/
     setInputValue() {
-        this.target.value = this.getDate(this.config.format);
+        this.config.el.value = this.getDate(this.config.format);
     }
 
     /** Define Event
@@ -159,8 +170,9 @@ class CalendarLib {
 
         /** @Event Calendar Open Input Click */
         if (this.config.clickEvent) {
-            this.target.addEventListener('click', () => {
+            this.config.el.addEventListener('click', () => {
                 this.open();
+                this.handler('open', 'Open Popup');
             });
         }
 
@@ -169,21 +181,19 @@ class CalendarLib {
             item.addEventListener('click', (event) => {
                 const dataArrow = event.currentTarget.getAttribute('data-arrow');
 
-                if ('NEXT' === dataArrow) this.date.setMonth(this.date.getMonth() + 1);
-                else this.date.setMonth(this.date.getMonth() - 1);
-                /* TODO INPUT value에 있는 cell에 check 클래스 적용 */
+                if ('NEXT' === dataArrow) this.config._date.setMonth(this.config._date.getMonth() + 1);
+                else this.config._date.setMonth(this.config._date.getMonth() - 1);
 
                 this.remove();
                 this.create();
 
-                if (this.currentDate !== null) {
-                    const year = this.currentDate.getFullYear();
-                    const month = this.currentDate.getMonth() + 1;
-                    const day = this.currentDate.getDate();
+                if (this.config._currentDate !== null) {
+                    const year = this.config._currentDate.getFullYear();
+                    const month = CalendarLib.getMonth(this.config._currentDate.getMonth() + 1);
+                    const day = this.config._currentDate.getDate();
 
                     for (let cell of cells) {
-                        if (Number(cell.getAttribute('value')) === day) {
-                            console.log(cell);
+                        if (Number(cell.getAttribute('value')) === day && month === this.month && this.year === year) {
                             cell.classList.add('check');
                             break;
                         }
@@ -205,16 +215,18 @@ class CalendarLib {
 
                 cell.classList.toggle('check');
 
-                this.currentDate = new Date(this.date.getFullYear(), this.date.getMonth(), tdCell);
-                this.setDate(this.currentDate);
+                this.config._currentDate = new Date(this.config._date.getFullYear(), this.config._date.getMonth(), tdCell);
+                this.setDate(this.config._currentDate);
+
                 this.hide();
+                this.handler('success');
             });
         }
 
         /** @Event Outer Layer Click*/
         document.addEventListener('mouseup', (event) => {
             const calenderBox = document.getElementById('calendarBox');
-            const containCondition = calenderBox.contains(event.target);
+            let containCondition = calenderBox.contains(event.target);
 
             if (!containCondition) this.hide();
         });
@@ -242,9 +254,10 @@ class CalendarLib {
      *  @Return : Date
      *  Specific Date Format */
     static dateFormat(date, format) {
-        /* Falsy Value Check */
-        if (!Boolean(date)) throw new Error('No Parameter');
+        if (!Boolean(date)) return null;
+        if (!Boolean(format)) return null;
 
+        /* Falsy Value Check */
         const year = date.getFullYear();
         let month = (date.getMonth() + 1);
         let day = date.getDate();
@@ -292,6 +305,7 @@ class CalendarLib {
                 date = `${month} ${day}`;
                 break;
         }
+
         return date;
     }
 
@@ -318,6 +332,7 @@ class CalendarLib {
      *  Set Style to Input Tag */
     static inputStyle(target) {
         const styleSheet = document.createElement('style');
+
         styleSheet.type = 'text/css';
         styleSheet.innerHTML = `.datepicker{
                                     background: url("../resources/icon-calendar.svg") no-repeat right 0.75rem top 50%;
@@ -329,5 +344,27 @@ class CalendarLib {
         document.getElementsByTagName('head')[0].appendChild(styleSheet);
         target.setAttribute('readonly', true);
         target.classList.add('datepicker');
+    }
+
+    /*********************
+     *      Handler
+     ********************/
+
+    /** Callback을 관리하는 Method
+     *  @Param : String, String*/
+    handler(method, msg) {
+        switch (method) {
+            case 'error':
+                try {
+                    if (typeof this.config.error === 'function') this.config.error(msg);
+                    else throw new Error(msg);
+                }catch (e) {
+                    console.error(e);
+                }
+                break;
+            case 'success':
+                if(typeof this.config.success === 'function') this.config.success(this.getDate(this.config.format));
+                break;
+        }
     }
 }
