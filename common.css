@@ -48,18 +48,20 @@
     cursor: pointer;
     width: 18px;
     margin-left: 40px;
-    background-image: url(../resources/ui-icons_444444_256x240.png);
+    background-image: url(resources/ui_icon.png);
     background-position: -100px -12px;
 }
 .next {
     cursor: pointer;
     width: 18px;
     margin-right: 40px;
-    background-image: url(../resources/ui-icons_444444_256x240.png);
+    background-image: url(resources/ui_icon.png);
     background-position: -30px -12px;
 }
-.prev {
-    color: #c5c5c5
+/* 이전일을 Style*/
+.prevDesign {
+    color: #c5c5c5;
+    cursor: default;
 }
 .none-click {
     pointer-events: none;
